@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.StorageaccountMapper">
+	<sql id="Base_Column_List">
+		StorageAccountId, IODate, IOUnit, Amount, ActuallyPaid, Due, Invoice, Comment,
+		ClosingDate,
+		isdel
+	</sql>
+
+
+	<!--addStorageaccount UC0402/UC0403——药品出/入库-->
+	<insert id="addStorageaccount" parameterType="Storageaccount">
+		/*出入库账单号
+		出入库药品
+		出入库商家
+		出入库批号
+		出入库数量
+		IOUnit——出入库单位就是当时出入库的人员角色
+		总金额
+		实付金额
+		应付金额
+		发票号
+		入库说明
+		StorageAccountId
+		IODate
+		IOUnit
+		Amount
+		ActuallyPaid
+		Due
+		Invoice
+		Comment
+		*/
+		INSERT INTO Storageaccount(StorageAccountId,IODate,IOUnit,Amount,ActuallyPaid,Due,Invoice,Comment)
+		VALUES(#{storageAccountId},#{IODate},#{IOUnit},#{amount},#{actuallyPaid},#{due},#{invoice},#{comment})
+	</insert>
+
+
+	<!--modifyStorageaccountByClosingDate-出入库账单的结算时间 -->
+	<update id="modifyStorageaccountByClosingDate">
+		update Storageaccount set ClosingDate=#{closingDate} WHERE StorageAccountId=#{storageAccountId}
+	</update>
+
+</mapper>

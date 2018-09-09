@@ -1,0 +1,8 @@
+1、提交项目，注释规范：[名字]-[本次提交所作的事情]。例: 李媛-添加项目相关文件  路径：src/file/
+2、css、js、img统一放入statics文件夹下。路径：src\main\webapp\statics
+3、MySQL绿色版的，更改jdbc.properties配置文件[端口号]、[密码]
+4、类、方法、变量命名要规范，不要随便乱取名字（切记）
+5、mapper.xml文件中没有任何sql语句，sql语句的字段与实体类的属性一定要相同（切记）
+6、编码规范：类名Service、类名ServiceImpl，方法名要规范，比如添加用户userAdd(),变量名要有意义
+
+有任何问题，及时与组长、组员沟通

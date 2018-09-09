@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.SaitemMapper">
+	<sql id="Base_Column_List">
+		SAItemId, StorageAccountId, MedicineId, SupplierId, buyerId, BatchNumber,
+		Number,
+		Validity, audit, isdel
+	</sql>
+
+	<!--药品出/入库 UC0402/UC0403-->
+	<insert id="addSaitem" parameterType="Saitem">
+		/*出入库账单号
+		出入库药品
+		出入库商家
+		出入库批号
+		出入库数量
+		IOUnit——出入库单位就是当时出入库的人员角色
+		总金额
+		实付金额
+		应付金额
+		发票号
+		入库说明
+
+		StorageAccountId
+		MedicineId
+		ManufacturerId
+		buyerId
+		BatchNumber
+		Number
+		Validity
+		audit
+		*/
+		INSERT INTO saitem(StorageAccountId,MedicineId,ManufacturerId,buyerId,BatchNumber,`Number`,Validity,audit)
+			VALUES(#{storageAccountId},#{medicineId},#{manufacturerId},#{buyerId},#{batchNumber},#{number},#{validity},#{audit})
+	</insert>
+
+
+	<!--modifySaitemByAudit UC0408-出入库审核-->
+	<update id="modifySaitemByAudit">
+	update saitem
+		<trim prefix="set" suffixOverrides="," suffix="where StorageAccountId=#{storageAccountId}">
+			<if test="audit !=0">audit=#{audit},</if>
+		</trim>
+
+	</update>
+
+
+
+</mapper>

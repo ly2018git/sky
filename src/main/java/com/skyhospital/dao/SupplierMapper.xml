@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.SupplierMapper">
+	<sql id="Base_Column_List">
+		SupplierId, SupplierName, Phone, Contact, Explain, State, GSPGMP, Charter,
+		OperatingPermit,
+		isdel
+	</sql>
+
+
+	<!--addSupplier  UC0404——买家添加-->
+	<insert id="addSupplier" parameterType="Supplier">
+		 INSERT INTO Supplier(SupplierName,Phone,Contact,`Explain`,State,GSPGMP,Charter,OperatingPermit)
+		              VALUES(#{supplierName},#{phone},#{contact},#{explain},#{state},#{GSPGMP},#{charter},#{operatingPermit})
+	</insert>
+
+
+
+	<!--getSupplierList UC0405——供应商管理显示-->
+	<select id="getSupplierList" resultType="Supplier" parameterType="map">
+		select * from Supplier
+		<trim prefix="where" prefixOverrides="and | or">
+			isdel=1
+			<if test="SupplierName !=null and SupplierName !=''">
+				and SupplierName LIKE  concat('%',#{supplierName},'%')
+			</if>
+			<if test="State !=null and State !=''">
+				and State LIKE  concat('%',#{state},'%')
+			</if>
+		</trim>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+
+
+	<!--getSupplierCount  供应商管理总数——UC0405 -->
+	<select id="getSupplierCount" resultType="Int">
+		select COUNT(1) from Supplier
+		<trim prefix="where" prefixOverrides="and | or">
+			isdel=1
+			<if test="SupplierName !=null and SupplierName !=''">
+				  and SupplierName LIKE  concat('%',#{supplierName},'%')
+			</if>
+			<if test="State !=null and State !=''">
+				and State LIKE  concat('%',#{state},'%')
+			</if>
+		</trim>
+	</select>
+
+
+
+
+	<!--modifySupplier UC0405——供应商管理————修改供应商,删除供应商-->
+	<update id="modifySupplier">
+		UPDATE supplier
+		<trim prefix="set" suffixOverrides="," suffix="where supplierId=#{supplierId}">
+			<if test="supplierName !=null and supplierName !=''">SupplierName=#{supplierName},</if>
+			<if test="phone !=null and phone !=''">Phone=#{phone},</if>
+			<if test="contact !=null and contact !=''">Contact=#{contact},</if>
+			<if test="explain !=null and explain !=''">Explain=#{explain},</if>
+			<if test="state !=null and state !=''">State=#{state},</if>
+			<if test="GSPGMP !=null and GSPGMP !=''">GSPGMP=#{GSPGMP},</if>
+			<if test="charter !=null and charter !=''">Charter=#{charter},</if>
+			<if test="operatingPermit !=null and operatingPermit !=''">OperatingPermit=#{operatingPermit},</if>
+			<if test="isdel is not null">Isdel=#{isdel},</if>
+		</trim>
+	</update>
+
+
+
+
+
+
+
+
+</mapper>

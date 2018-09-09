@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.WarehouseMapper">
+	<sql id="Base_Column_List">
+		WarehouseId, SAItemId, GAID,MedicineId, number, InventoryFloor, Handling, isdel
+	</sql>
+
+
+
+	<!--modifyWarehouse -根据出入库信息去修改库存数量  -->
+	<update id="modifyWarehouse">
+		UPDATE warehouse
+		<trim prefix="set" suffixOverrides="," suffix="where MedicineId=#{medicineId}">
+			<if test="number !=0">Number=#{number},</if>
+			<if test="SAItemId !=0">SAItemId=#{SAItemId},</if>
+			<if test="handling !=null and handling  !=''">Handling=#{handling},</if>
+		</trim>
+	</update>
+
+	<!--addWarehouse  -->
+	<insert id="addWarehouse">
+		INSERT INTO  warehouse(SAItemId,GAID,MedicineId,MedicineName,`Number`,InventoryFloor,Handling,isdel)
+		VALUES (#{SAItemId},#{GAID},#{medicineId},#{medicineName},#{number},#{inventoryFloor},#{handling},#{isdel})
+	</insert>
+
+
+
+	<!-- 库存盘点列表  zsq-->
+	<select id="getInventoryList" resultType="Warehouse" parameterType="map">
+		select w.MedicineId,w.MedicineName,m.CommonName,
+		s.SpecificationName,man.ManufacturerName,
+		u.UnitName,g.`Comment`,sa.Validity,sa.BatchNumber,
+		w.number,m.SalePrice,m.PurchasePrice,
+		m.SalePrice-m.PurchasePrice as profit,sto.IODate
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join manufacturer man
+		on man.ManufacturerId=m.ManufacturerId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName!=null and medicineName!=''">
+				m.MedicineName like CONCAT ('%',#{medicineName},'%')
+			</if>
+		</trim>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<!-- 库存盘点总条数 zsq-->
+	<select id="getCountByInventory" resultType="int" parameterType="map">
+		select count(1)
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join manufacturer man
+		on man.ManufacturerId=m.ManufacturerId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName!=null and medicineName!=''">
+				m.MedicineName like CONCAT ('%',#{medicineName},'%')
+			</if>
+		</trim>
+	</select>
+
+	<!-- 根据id获取药品信息 zsq-->
+	<select id="getMedicineMsgById" resultType="Warehouse" parameterType="Integer">
+		select m.MedicineId,m.MedicineName,
+		m.CommonName,s.SpecificationName,d.DosageFormsName,
+		u.UnitName,w.number,d.DosageFormsId
+		from warehouse w
+		inner join medicine m
+		on m.MedicineId=w.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join dosageforms d
+		on d.DosageFormsId=m.DosageFormsId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		where w.MedicineId=#{medicineId}
+	</select>
+
+	<!-- 获取所有剂型 -->
+	<select id="getAllDos" resultType="Dosageforms">
+		select DosageFormsId,DosageFormsName from dosageforms
+	</select>
+
+
+	<!-- 库存修改数量 zsq-->
+	<update id="modifyMedicineMessage">
+		update warehouse
+		set Number=#{number}
+		where MedicineId=#{medicineId}
+	</update>
+
+
+	<!-- 根据条件查询调价列表 zsq-->
+	<select id="getAdjustPriceMedicineByCondition" resultType="Warehouse" parameterType="map">
+		select w.MedicineId,w.MedicineName,man.ManufacturerName,
+		s.SpecificationName,u.UnitName,w.number,
+		sa.BatchNumber,m.PurchasePrice,m.SalePrice,m.PurchasePrice,
+		g.`Comment`,sto.IODate,sa.Validity,dos.DosageFormsName
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join manufacturer man
+		on m.ManufacturerId=man.ManufacturerId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		inner join dosageforms dos
+		on dos.DosageFormsId=m.DosageFormsId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName!=null and medicineName!=''">
+				and w.MedicineName like CONCAT ('%',#{medicineName},'%')
+			</if>
+			<if test="number != null and number!='' and number2!=null and number2!=''">
+				and w.number BETWEEN #{number} and #{number2}
+			</if>
+			<if test="chooseDate != null and chooseDate != ''">
+				and TIMESTAMPDIFF(DAY,#{chooseDate},sa.Validity) BETWEEN 1 and 60
+			</if>
+		</trim>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<!-- 获取调价列表总条数 -->
+	<select id="getCountByAPMedicine" parameterType="map" resultType="int">
+		select COUNT(*)
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join manufacturer man
+		on m.ManufacturerId=man.ManufacturerId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		inner join dosageforms dos
+		on dos.DosageFormsId=m.DosageFormsId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="chooseDate != null and chooseDate != ''">
+				and TIMESTAMPDIFF(DAY,#{chooseDate},sa.Validity) BETWEEN 1 and 60
+			</if>
+			<if test="medicineName!=null and medicineName!=''">
+				and w.MedicineName like CONCAT ('%',#{medicineName},'%')
+			</if>
+			<if test="number != null and number!='' and number2!=null and number2!=''">
+				and w.number BETWEEN #{number} and #{number2}
+			</if>
+		</trim>
+	</select>
+
+
+	<!-- 批量调价 -->
+	<update id="modifyMedicinePrice">
+		update medicine
+		set SalePrice = SalePrice * #{discount,jdbcType=DOUBLE}
+		where MedicineId in
+		<foreach collection="item" item="item" index="index"
+				 open="(" close=")" separator=",">
+			${item}
+		</foreach>
+	</update>
+
+
+	<!-- 获取有效期报警列表 zsq -->
+	<select id="getListByValidity" parameterType="map" resultType="Warehouse">
+		select w.MedicineId,w.MedicineName,m.CommonName,
+		s.SpecificationName,u.UnitName,man.ManufacturerName,
+		sa.BatchNumber,sa.Validity,w.number,g.`Comment`,sto.IODate,
+		dos.DosageFormsName,w.Handling,m.`Comment`
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join manufacturer man
+		on man.ManufacturerId=m.ManufacturerId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		inner join dosageforms dos
+		on dos.DosageFormsId=m.DosageFormsId
+		where TIMESTAMPDIFF(DAY,NOW(),sa.Validity) BETWEEN 1 and 60
+		<if test="medicineName!=null and medicineName!=''">
+			and m.MedicineName like CONCAT ('%',#{medicineName},'%')
+		</if>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<!-- 获取有效期报警信息总条数 zsq -->
+	<select id="getCountByValidity" parameterType="map" resultType="int">
+		select COUNT(*)
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join manufacturer man
+		on man.ManufacturerId=m.ManufacturerId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		inner join dosageforms dos
+		on dos.DosageFormsId=m.DosageFormsId
+		where TIMESTAMPDIFF(DAY,now(),sa.Validity) BETWEEN 1 and 60
+		<if test="medicineName!=null and medicineName!=''">
+			and m.MedicineName like CONCAT ('%',#{medicineName},'%')
+		</if>
+	</select>
+
+	<!-- 获取药品处理信息列表-->
+	<select id="getDisposeMedicineList" resultType="Warehouse" parameterType="map">
+		select w.MedicineId,sto.IODate,w.MedicineName,m.CommonName,
+		s.SpecificationName,u.UnitName,man.ManufacturerName,
+		g.`Comment`,sa.BatchNumber,sa.Validity,w.number,
+		w.Handling,m.Comment as mComment
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join manufacturer man
+		on man.ManufacturerId=m.ManufacturerId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<!-- 获取药品处理信息列表总条数-->
+	<select id="getDisposeMedicineCount" parameterType="map" resultType="int">
+		select COUNT(*)
+		from warehouse w
+		inner join medicine m
+		on w.MedicineId=m.MedicineId
+		inner join specification s
+		on s.SpecificationId=m.SpecificationId
+		inner join manufacturer man
+		on man.ManufacturerId=m.ManufacturerId
+		inner join unit u
+		on u.UnitId=m.UnitId
+		inner join goodsallocation g
+		on g.GAID=w.GAID
+		inner join saitem sa
+		on sa.SAItemId=w.SAItemId
+		inner join storageaccount sto
+		on sto.StorageAccountId=sa.StorageAccountId
+	</select>
+
+
+
+
+</mapper>
