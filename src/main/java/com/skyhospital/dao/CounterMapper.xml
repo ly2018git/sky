@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.CounterMapper">
+	<sql id="Base_Column_List">
+		CounterId, SAItemId, GAID, Number, Upper, Lower, isdel
+	</sql>
+	<!--查询所有的柜台信息-->
+	<select id="getAllMedicineName" resultType="Counter">
+		select c.*,m.MedicineName from counter  c
+		inner join medicine m on c.MedicineId=m.MedicineId
+	</select>
+	<!--根据药品id查询是否存在数据-->
+	<select id="getIsExistByMedicineId" resultType="Counter">
+		select <include refid="Base_Column_List"/>
+		from counter where MedicineId=#{MedicineId}
+	</select>
+	<!--分页查询柜台销售-->
+	<select id="findCounterPage" resultType="Counter" parameterType="map">
+		select ct.CounterId,mdc.MedicineName,mdc.CommonName,sft.SpecificationName,
+		mfc.ManufacturerName,mdc.IsPrescription,mdc.SalePrice,ct.Number,gs.GAName
+		from counter ct
+		inner join medicine mdc on ct.MedicineId=mdc.MedicineId
+		inner join goodsallocation gs on ct.GAID=gs.GAID
+		inner join specification sft on mdc.SpecificationId=sft.SpecificationId
+		inner join manufacturer mfc on mdc.ManufacturerId=mfc.ManufacturerId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName != null and medicineName !=''">
+				mdc.MedicineName like CONCAT('%',#{medicineName},'%')
+			</if>
+		</trim>
+		limit #{pageIndex},#{pageSize}
+	</select>
+
+	<!--分页查询柜台销售总记录数-->
+	<select id="findCounterCount" resultType="int" parameterType="map">
+		select count(1)
+		from counter ct
+		inner join medicine mdc on ct.MedicineId=mdc.MedicineId
+		inner join goodsallocation gs on ct.GAID=gs.GAID
+		inner join specification sft on mdc.SpecificationId=sft.SpecificationId
+		inner join manufacturer mfc on mdc.ManufacturerId=mfc.ManufacturerId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName != null and medicineName !=''">
+				mdc.MedicineName like CONCAT('%',#{medicineName},'%')
+			</if>
+		</trim>
+	</select>
+
+	<!--添加药品柜台销售-->
+	<insert id="addCounter">
+		insert into counter(MedicineId,GAID,Number,Upper,Lower)
+		values(#{MedicineId},#{GAID},#{number},#{upper},#{lower});
+	</insert>
+	<!--根据id查询要修改的柜台销售信息-->
+	<select id="getCounterMsgById" resultType="Counter">
+		select ct.*,m.MedicineName,gs.GAName
+		from counter ct INNER JOIN medicine m on ct.MedicineId=m.MedicineId
+		INNER JOIN goodsallocation gs on ct.GAID=gs.GAID where ct.CounterId=#{counterId}
+	</select>
+	<!--修改药品柜台销售计划-->
+	<update id="modifyCounter">
+		update counter <trim prefix="set" suffixOverrides=",">
+		<if test="MedicineId!=null">MedicineId=#{MedicineId},</if>
+		<if test="GAID!=null">GAID=#{GAID},</if>
+		<if test="number!=null">Number=#{number}</if>
+	</trim>
+		where CounterId=#{counterId}
+	</update>
+	<!--删除药品柜台销售计划-->
+	<update id="delCounter">
+		update counter set isdel=#{isdel} where CounterId=#{counterId}
+	</update>
+	<!--根据柜台id修改柜台数量-->
+	<update id="modifyCounterNumById">
+		update counter set Number=#{number} where CounterId=#{counterId}
+	</update>
+	
+</mapper>

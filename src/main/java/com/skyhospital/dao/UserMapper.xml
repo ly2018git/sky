@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.UserMapper">
+	<sql id="Base_Column_List">
+		UID, UName, LoginPwd, Sex, RID, Phone, Address, email, Photo, BortDate, isdel
+	</sql>
+
+	<resultMap id="BaseResultMap" type="User" >
+		<id column="UID" property="UID" jdbcType="BIGINT" />
+		<result column="UName" property="UName" jdbcType="VARCHAR" />
+		<result column="loginPwd" property="loginPwd" jdbcType="VARCHAR" />
+		<result column="sex" property="sex" jdbcType="INTEGER" />
+		<result column="RID" property="RID" jdbcType="VARCHAR" />
+		<result column="phone" property="phone" jdbcType="VARCHAR" />
+		<result column="address" property="address" jdbcType="VARCHAR" />
+		<result column="photo" property="photo" jdbcType="VARCHAR" />
+		<result column="bortDate" property="bortDate" jdbcType="DATE" />
+		<result column="email" property="email" jdbcType="VARCHAR" />
+		<result column="isdel" property="isdel" jdbcType="INTEGER" />
+
+
+		<association property = "role" javaType = "Role">
+			<id column="RID" property="RID" jdbcType="VARCHAR" />
+			<result column="RName" property="RName" jdbcType="VARCHAR" />
+		</association>
+	</resultMap>
+
+
+	<!--根据用户名查询数据-->
+	<select id="login" resultMap="BaseResultMap">
+		SELECT u.* ,r.RName
+		FROM user u,role r
+		WHERE u.RID = r.RID AND UName = #{userName}
+	</select>
+
+	<!--添加用户信息-->
+	<insert id="addUser" parameterType="User">
+		INSERT INTO user
+		(UName,LoginPwd,Sex,RID,Phone,Address,Photo,BortDate,isdel)
+		VALUES
+		('琳姑娘','199508',1,1,'18312166202','湛江霞山','暂无照片','1995-08-02',1)
+	</insert>
+
+	<!--修改用户信息-->
+	<update id="modifyUser" parameterType="User">
+		UPDATE user
+		SET UName = '琳姑娘' ,LoginPwd = '199501' ,
+		Sex = 1 ,RID = 1 ,Phone = '18312166202',
+		Address = '湛江霞山',Photo = '暂无照片',BortDate = '1995-08-01',
+		isdel = 1
+		WHERE UID = 0
+	</update>
+
+	<!--删除用户-->
+	<delete id="deleteUser" parameterType="java.lang.Long">
+		delete from user
+		where UID = 0
+	</delete>
+
+	<!--查找密码-->
+	<select id="findPwd" resultType="String">
+		SELECT loginPwd
+		FROM user
+		WHERE UID = #{UId}
+	</select>
+
+	<!--修改密码-->
+	<update id="modifyUserPassword" parameterType="java.lang.String">
+		UPDATE user
+		SET LoginPwd = #{rnewpwd}
+		WHERE UID = #{UId}
+	</update>
+
+	<!--修改用户角色-->
+	<update id="modifyRole" parameterType="java.lang.Long">
+		UPDATE user
+		SET RID=2
+		WHERE UID=0
+	</update>
+
+
+	<!--根据用户id查询销售员名称-->
+	<select id="getUserNameByUID" resultType="User">
+		select <include refid="Base_Column_List"/> from user where UID=#{UID}
+	</select>
+	<!--分页显示列表-->
+	<select id="findUserPage" resultType="User">
+		select u.*,r.RName
+		from user u
+		inner join userrole ur on ur.UID=u.UID
+		inner join role r on ur.RID=r.RID
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="UName != null and UName !=''">
+				and u.UName like CONCAT('%',#{UName},'%')
+			</if>
+		</trim>
+		order by u.BortDate desc limit #{pageIndex},#{pageSize}
+	</select>
+	<!--查询总记录数-->
+	<select id="findUserCount" resultType="int">
+		select count(1)
+		from user u
+		inner join userrole ur on ur.UID=u.UID
+		inner join role r on ur.RID=r.RID
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="UName != null and UName !=''">
+				and u.UName like CONCAT('%',#{UName},'%')
+			</if>
+		</trim>
+		order by u.BortDate desc
+	</select>
+</mapper>

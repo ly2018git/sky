@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.SaitemMapper">
+	<sql id="Base_Column_List">
+		SAItemId, StorageAccountId, MedicineId, SupplierId, buyerId, BatchNumber,
+		Number,
+		Validity, audit, isdel
+	</sql>
+
+	<!--药品出/入库 UC0402/UC0403-->
+	<insert id="addSaitem" parameterType="Saitem">
+		/*出入库账单号
+		出入库药品
+		出入库商家
+		出入库批号
+		出入库数量
+		IOUnit——出入库单位就是当时出入库的人员角色
+		总金额
+		实付金额
+		应付金额
+		发票号
+		入库说明
+
+		StorageAccountId
+		MedicineId
+		ManufacturerId
+		buyerId
+		BatchNumber
+		Number
+		Validity
+		audit
+		*/
+		INSERT INTO saitem(StorageAccountId,MedicineId,ManufacturerId,buyerId,BatchNumber,`Number`,Validity,audit)
+			VALUES(#{storageAccountId},#{medicineId},#{manufacturerId},#{buyerId},#{batchNumber},#{number},#{validity},#{audit})
+	</insert>
+
+
+	<!--modifySaitemByAudit UC0408-出入库审核-->
+	<update id="modifySaitemByAudit">
+	update saitem
+		<trim prefix="set" suffixOverrides="," suffix="where StorageAccountId=#{storageAccountId}">
+			<if test="audit !=0">audit=#{audit},</if>
+		</trim>
+
+	</update>
+
+	<!--分页显示药品养护列表-->
+	<select id="findConservePage" resultType="Saitem">
+		select mc.MedicineId,mc.MedicineName,mc.CommonName,sp.SpecificationName,un.UnitName,ds.DosageFormsName,si.BatchNumber,
+		si.Number,mf.ManufacturerName,si.Validity,DATEDIFF(si.Validity,CURDATE()) as 'surplus'
+		from saitem si
+		inner join medicine mc on mc.MedicineId=si.MedicineId
+		inner join specification sp on sp.SpecificationId=mc.SpecificationId
+		inner join dosageforms ds on ds.DosageFormsId=mc.DosageFormsId
+		inner join unit un on un.UnitId=mc.UnitId
+		inner join manufacturer mf on mf.ManufacturerId=mc.ManufacturerId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName != null and medicineName !=''">
+				and mc.MedicineName like CONCAT('%',#{medicineName},'%')
+			</if>
+		</trim>
+		order by si.Validity limit #{pageIndex},#{pageSize}
+	</select>
+	<!--查询药品养护总记录数-->
+	<select id="findConserveCount" resultType="int">
+		select count(1)
+		from saitem si
+		inner join medicine mc on mc.MedicineId=si.MedicineId
+		inner join specification sp on sp.SpecificationId=mc.SpecificationId
+		inner join dosageforms ds on ds.DosageFormsId=mc.DosageFormsId
+		inner join unit un on un.UnitId=mc.UnitId
+		inner join manufacturer mf on mf.ManufacturerId=mc.ManufacturerId
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="medicineName != null and medicineName !=''">
+				and mc.MedicineName like CONCAT('%',#{medicineName},'%')
+			</if>
+		</trim>
+		order by si.Validity
+	</select>
+
+	<!--分页显示药品购进记录列表-->
+	<select id="findPurchasePage" resultType="Saitem">
+		select srg.Invoice,mc.MedicineName,srg.IODate,si.Number,si.BatchNumber,srg.Due,srg.ActuallyPaid,srg.Amount,mc.PurchasePrice,
+		srg.Amount,un.UnitName,mf.ManufacturerName,ds.DosageFormsName,si.Validity,srg.Comment
+		from saitem si
+		inner join storageaccount srg on srg.StorageAccountId=si.StorageAccountId
+		inner join medicine mc on mc.MedicineId=si.MedicineId
+		inner join unit un on un.UnitId=mc.UnitId
+		inner join manufacturer mf on mf.ManufacturerId=mc.ManufacturerId
+		inner join dosageforms ds on ds.DosageFormsId=mc.DosageFormsId
+		<trim prefix="where" prefixOverrides="and | or">
+			srg.Invoice like CONCAT('%T%')
+			<if test="medicineName != null and medicineName !=''">
+				and mc.MedicineName like CONCAT('%',#{medicineName},'%')
+			</if>
+		</trim>
+		order by si.Validity limit #{pageIndex},#{pageSize}
+	</select>
+	<!--查询药品购进记录总记录数-->
+	<select id="findPurchaseCount" resultType="int">
+		select count(1)
+		from saitem si
+		inner join storageaccount srg on srg.StorageAccountId=si.StorageAccountId
+		inner join medicine mc on mc.MedicineId=si.MedicineId
+		inner join unit un on un.UnitId=mc.UnitId
+		inner join manufacturer mf on mf.ManufacturerId=mc.ManufacturerId
+		inner join dosageforms ds on ds.DosageFormsId=mc.DosageFormsId
+		<trim prefix="where" prefixOverrides="and | or">
+			srg.Invoice like CONCAT('%T%')
+			<if test="medicineName != null and medicineName !=''">
+				and mc.MedicineName like CONCAT('%',#{medicineName},'%')
+			</if>
+		</trim>
+		order by si.Validity
+	</select>
+
+</mapper>

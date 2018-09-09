@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.MedicineMapper" >
+  <sql id="Base_Column_List" >
+    MedicineId, MedicineName, CommonName, SpecificationId, ManufacturerId, UnitId, DosageFormsId, 
+    GoodsKindId, MCKId, TinyUnitId, ModifierId, MedicineKindId, TinySpecification, BarCode, 
+    RetailStdPrice, PurchasePrice, IsPrescription, SalePrice, Comment, StandardCode, 
+    IsHealthCare, isdel
+  </sql>
+
+
+
+
+  <insert id="addMedicine" parameterType="Medicine">
+    INSERT INTO medicine (MedicineName,CommonName,SpecificationId,
+    ManufacturerId,UnitId,DosageFormsId,GoodsKindId,MCKId,TinyUnitId,
+    MedicineKindId,TinySpecification,BarCode,RetailStdPrice,PurchasePrice,
+    IsPrescription,SalePrice,`Comment`,StandardCode,IsHealthCare)
+    VALUES(#{medicineName},#{commonName},#{specificationId},
+    #{manufacturerId},#{unitId},#{dosageFormsId},#{goodsKindId},#{MCKId},#{tinyUnitId},
+    #{medicineKindId},#{tinySpecification},#{barCode},#{retailStdPrice},#{purchasePrice},
+    #{isPrescription},#{salePrice},#{comment},#{standardCode},#{isHealthCare})
+  </insert>
+
+  <!--查询所有药品信息-->
+  <select id="findAllMedicine" resultType="Medicine">
+    select <include refid="Base_Column_List"/> from medicine
+  </select>
+  <!--根据药品id查询药品销售价格-->
+  <select id="getSalesPriceByMedicineId" resultType="Medicine">
+    select <include refid="Base_Column_List"/>
+    from medicine where MedicineId=#{medicineId}
+  </select>
+
+</mapper>

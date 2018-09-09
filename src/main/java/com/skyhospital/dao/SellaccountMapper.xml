@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.SellaccountMapper">
+	<sql id="Base_Column_List">
+		SellAccountId, UID, SellDate, VipId, Amount, ActuallyPaid, Due, CutAmount,
+		CutComment,
+		PayWay, Comment, ClosingDate, Salesman, isdel
+	</sql>
+
+	<!--根据vipid查找销售账单记录-->
+	<select id="getSellAccountByVipId" resultType="Sellaccount">
+		select <include refid="Base_Column_List"/>
+		from sellaccount where VipId=#{vipId};
+	</select>
+	<!--根据vipid修改账单信息-->
+	<update id="modifyVipIdBySellAccountId">
+		update sellaccount set VipId=null where SellAccountId=#{sellAccountId};
+	</update>
+
+	<!--添加销售药品-->
+	<insert id="addSellCount">
+		insert into sellaccount(SellAccountId, UID, SellDate, VipId, Amount, ActuallyPaid,
+		Due,CutAmount,CutComment,PayWay,Comment,ClosingDate,Salesman,CounterId) values(#{sellAccountId},
+		#{UID},#{sellDate},#{vipId},#{amount},#{actuallyPaid},#{due},#{cutAmount},#{cutComment},#{payWay},
+		#{comment},#{closingDate},#{salesman},#{counterId})
+	</insert>
+
+	<!--根据销售员编号，和时间段分页查询销售营业额  -->
+	<select id="findSaleTurnover" resultType="Sellaccount" parameterType="map">
+		select sac.SellAccountId,sac.UID,sac.SellDate,sac.VipId,sac.ActuallyPaid,
+		sac.Due,sac.cutAmount,sac.CutComment as 'cutComment',sac.PayWay,sac.`Comment`,sac.ClosingDate,sac.Salesman
+		from sellaccount sac
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="UID != null and UID !=''">
+				sac.UID=#{UID}
+			</if>
+
+			<if test="sellDate1 != null and sellDate1 != ''">
+				<![CDATA[ and  sac.SellDate >= date(#{sellDate1}) ]]>
+			</if>
+			<if test="sellDate2 !=null and sellDate2 != ''">
+				<![CDATA[ and  sac.SellDate <= date(#{sellDate2}) ]]>
+			</if>
+
+		</trim>
+		order by sac.SellDate desc limit #{pageIndex},#{pageSize}
+	</select>
+	<!--查询销售营业额总记录数-->
+	<select id="findSellAccountCount" resultType="int" parameterType="map">
+		select count(1) from sellaccount sac
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="UID != null and UID !=''">
+				sac.UID=#{UID}
+			</if>
+
+			<!--<if test="sellDate1 != null and sellDate2 !=null and sellDate1 != '' and sellDate2 != ''">
+				and sac.SellDate between date(#{sellDate1}) and date(#{sellDate2})
+			</if>-->
+			<if test="sellDate1 != null and sellDate1 != ''">
+				<![CDATA[ and  sac.SellDate >= date(#{sellDate1}) ]]>
+			</if>
+			<if test="sellDate2 !=null and sellDate2 != ''">
+				<![CDATA[ and  sac.SellDate <= date(#{sellDate2}) ]]>
+			</if>
+
+		</trim>
+	</select>
+	<!--批量查找-->
+	<!--<select id="getSellAccountByVipIds" resultType="String">
+		select SellAccountId where  VipId in
+		<foreach collection="item" item="item" index="index" open="(" close=")" separator=",">
+			${item}
+		</foreach>
+	</select>-->
+	<select id="getSellAccountByVipIds" resultType="Sellaccount">
+		select SellAccountId where  VipId=#{vipId}
+	</select>
+	<!--批量修改-->
+	<update id="modifyVips">
+		update sellaccount set VipId=null where SellAccountId=#{sellAccountId}
+	</update>
+
+</mapper>

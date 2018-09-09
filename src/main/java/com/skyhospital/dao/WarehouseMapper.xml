@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.WarehouseMapper">
+	<sql id="Base_Column_List">
+		WarehouseId, SAItemId, GAID,MedicineId, number, InventoryFloor, Handling, isdel
+	</sql>
+
+
+
+	<!--modifyWarehouse -根据出入库信息去修改库存数量  -->
+	<update id="modifyWarehouse">
+		UPDATE warehouse
+		<trim prefix="set" suffixOverrides="," suffix="where MedicineId=#{medicineId}">
+			<if test="number !=0">Number=#{number},</if>
+			<if test="SAItemId !=0">SAItemId=#{SAItemId},</if>
+			<if test="handling !=null and handling  !=''">Handling=#{handling},</if>
+		</trim>
+	</update>
+
+	<!--addWarehouse  -->
+	<insert id="addWarehouse">
+		INSERT INTO  warehouse(SAItemId,GAID,MedicineId,MedicineName,`Number`,InventoryFloor,Handling,isdel)
+		VALUES (#{SAItemId},#{GAID},#{medicineId},#{medicineName},#{number},#{inventoryFloor},#{handling},#{isdel})
+	</insert>
+
+	<!--根据药品id查询库存数量-->
+	<select id="getWareHouseNumByMedicineId" resultType="Warehouse">
+		select <include refid="Base_Column_List"/>
+		from warehouse
+		where MedicineId=#{medicineId}
+	</select>
+	<!--根据药品id修改库存数量-->
+	<update id="modifyWarehouseNum">
+		update warehouse
+		<trim prefix="set" suffixOverrides=",">
+			<if test="SAItemId!=null">SAItemId=#{SAItemId},</if>
+			<if test="GAID!=null">GAID=#{GAID},</if>
+			<if test="medicineId!=null">MedicineId=#{medicineId},</if>
+			<if test="medicineName!=null">MedicineName=#{medicineName},</if>
+			<if test="number!=null">number=#{number},</if>
+			<if test="inventoryFloor!=null">InventoryFloor=#{inventoryFloor},</if>
+			<if test="handling!=null">Handling=#{handling},</if>
+			<if test="isdel!=null">isdel=#{isdel}</if>
+		</trim>
+		where MedicineId=#{medicineId}
+	</update>
+
+</mapper>

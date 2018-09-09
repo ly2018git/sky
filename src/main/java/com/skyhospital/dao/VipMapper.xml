@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyhospital.dao.VipMapper">
+	<sql id="Base_Column_List">
+		VipId, VipName, integral, sex, Phone, Address, CreateDate
+	</sql>
+	<!--查询所有会员-->
+	<select id="getAllVip" resultType="Vip">
+		select <include refid="Base_Column_List"/> from vip
+	</select>
+	<!--分页查询会员管理列表-->
+	<select id="findVipPage" resultType="Vip">
+		select id,VipLevel, VipName, integral, sex, Phone, Address, CreateDate,CreateBy,ModifyBy,ModifyDate
+		from vip
+		<trim prefix="where" prefixOverrides="and | or">
+
+			<if test="phone != null and phone != ''">
+				Phone=#{phone}
+			</if>
+			<if test="id != null and id != ''">
+				and id=#{id}
+			</if>
+		</trim>
+		order by CreateDate desc limit #{pageIndex},#{pageSize}
+	</select>
+	<!--分页查询会员总记录数-->
+	<select id="findVipCount" resultType="int" parameterType="map">
+		select count(1)
+		from vip
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="phone != null and phone != ''">
+				Phone=#{phone}
+			</if>
+			<if test="id != null and id != ''">
+				and id=#{id}
+			</if>
+
+		</trim>
+	</select>
+
+	<!-- 添加会员-->
+	<insert id="addVip">
+		insert into vip(VipLevel,VipName,sex,Phone,Address,CreateDate,CreateBy,ModifyDate)
+		values(#{vipLevel},#{vipName},#{sex},#{phone},#{address},#{createDate},#{createBy},#{modifyDate})
+	</insert>
+	<!--根据vipid查找对应的信息-->
+	<select id="getVipByVipId" resultType="Vip">
+		select <include refid="Base_Column_List"/>
+		from vip where id=#{id}
+	</select>
+
+	<!--根据会员id修改会员积分-->
+	<update id="modifyVipIntegral">
+		update vip set integral=#{integral} where id=#{id}
+	</update>
+	<!--修改会员-->
+	<update id="modifyVip">
+		update vip <trim prefix="set" suffixOverrides=",">
+		<if test="vipLevel!=null">VipLevel=#{vipLevel},</if>
+		<if test="vipName!=null">VipName=#{vipName},</if>
+		<if test="integral!=null">integral=#{integral},</if>
+		<if test="sex!=null">sex=#{sex},</if>
+		<if test="phone!=null">Phone=#{phone},</if>
+		<if test="address!=null">Address=#{address},</if>
+		<if test="createDate!=null">CreateDate=#{createDate},</if>
+		<if test="createBy!=null">CreateBy=#{createBy},</if>
+		<if test="modifyDate!=null">ModifyDate=#{modifyDate}</if>
+	</trim>
+		where id=#{id}
+	</update>
+	<!--删除会员-->
+	<delete id="delVip">
+		delete from vip where id=#{id}
+	</delete>
+	<!-- 批量删除 -->
+
+	<delete id="delVips">
+		delete from vip
+		where id in
+		<foreach collection="item" item="item" index="index" open="(" close=")" separator=",">
+			${item}
+		</foreach>
+	</delete>
+
+
+</mapper>
